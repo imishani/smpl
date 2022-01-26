@@ -21,6 +21,7 @@
 #include <smpl/robot_model.h>
 #include <smpl/search/adaptive_planner.h>
 #include <smpl/search/arastar.h>
+#include <smpl/search/smhastar.h>
 #include <smpl/search/awastar.h>
 #include <smpl/search/experience_graph_planner.h>
 #include <smpl/stl/memory.h>
@@ -604,11 +605,11 @@ auto MakeJointDistEGraphHeuristic(
 
 auto MakeARAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>
 {
-    auto search = make_unique<ARAStar>(space, heuristic);
+    auto search = make_unique<ARAStar>(space, heuristic[0]);
 
     double epsilon;
     params.param("epsilon", epsilon, 1.0);
@@ -653,11 +654,11 @@ auto MakeARAStar(
 
 auto MakeAWAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>
 {
-    auto search = make_unique<AWAStar>(space, heuristic);
+    auto search = make_unique<AWAStar>(space, heuristic[0]);
     double epsilon;
     params.param("epsilon", epsilon, 1.0);
     search->set_initialsolution_eps(epsilon);
@@ -666,30 +667,15 @@ auto MakeAWAStar(
 
 auto MakeMHAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristics,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>
 {
-    struct MHAPlannerAdapter : public MHAPlanner {
-        std::vector<Heuristic*> heuristics;
-
-        MHAPlannerAdapter(
-            DiscreteSpaceInformation* space,
-            Heuristic* anchor,
-            Heuristic** heurs,
-            int hcount)
-        :
-            MHAPlanner(space, anchor, heurs, hcount)
-        { }
-    };
-
-    std::vector<Heuristic*> heuristics;
-    heuristics.push_back(heuristic);
-
-    auto search = make_unique<MHAPlannerAdapter>(
-            space, heuristics[0], &heuristics[0], heuristics.size());
-
-    search->heuristics = std::move(heuristics);
+    auto search = make_unique<smpl::SMHAStar>();
+    if(heuristics.size() > 1)
+        search->Init(space, heuristics[0], &heuristics[1], heuristics.size()-1);
+    else
+        search->Init(space, heuristics[0], &heuristics[0], heuristics.size()-1);
 
     double mha_eps;
     params.param("epsilon_mha", mha_eps, 1.0);
@@ -697,18 +683,57 @@ auto MakeMHAStar(
 
     double epsilon;
     params.param("epsilon", epsilon, 1.0);
-    search->set_initialsolution_eps(epsilon);
+    search->set_initial_eps(epsilon);
 
-    bool search_mode;
-    params.param("search_mode", search_mode, false);
-    search->set_search_mode(search_mode);
 
     return std::move(search);
 }
 
+// auto MakeMHAStar(
+//     RobotPlanningSpace* space,
+//     RobotHeuristic* heuristic,
+//     const PlanningParams& params)
+//     -> std::unique_ptr<SBPLPlanner>
+// {
+//     struct MHAPlannerAdapter : public MHAPlanner {
+//         std::vector<Heuristic*> heuristics;
+
+//         MHAPlannerAdapter(
+//             DiscreteSpaceInformation* space,
+//             Heuristic* anchor,
+//             Heuristic** heurs,
+//             int hcount)
+//         :
+//             MHAPlanner(space, anchor, heurs, hcount)
+//         { }
+//     };
+
+//     std::vector<Heuristic*> heuristics;
+//     heuristics.push_back(heuristic);
+
+//     auto search = make_unique<MHAPlannerAdapter>(
+//             space, heuristics[0], &heuristics[0], heuristics.size());
+
+//     search->heuristics = std::move(heuristics);
+
+//     double mha_eps;
+//     params.param("epsilon_mha", mha_eps, 1.0);
+//     search->set_initial_mha_eps(mha_eps);
+
+//     double epsilon;
+//     params.param("epsilon", epsilon, 1.0);
+//     search->set_initialsolution_eps(epsilon);
+
+//     bool search_mode;
+//     params.param("search_mode", search_mode, false);
+//     search->set_search_mode(search_mode);
+
+//     return std::move(search);
+// }
+
 auto MakeLARAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>
 {
@@ -723,54 +748,54 @@ auto MakeLARAStar(
     return std::move(search);
 }
 
-auto MakeEGWAStar(
-    RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
-    const PlanningParams& params)
-    -> std::unique_ptr<SBPLPlanner>
-{
-    auto search = make_unique<ExperienceGraphPlanner>(space, heuristic);
+// auto MakeEGWAStar(
+//     RobotPlanningSpace* space,
+//     RobotHeuristic* heuristic,
+//     const PlanningParams& params)
+//     -> std::unique_ptr<SBPLPlanner>
+// {
+//     auto search = make_unique<ExperienceGraphPlanner>(space, heuristic);
 
-    double epsilon;
-    params.param("epsilon", epsilon, 1.0);
-    search->set_initialsolution_eps(epsilon);
+//     double epsilon;
+//     params.param("epsilon", epsilon, 1.0);
+//     search->set_initialsolution_eps(epsilon);
 
-    return std::move(search);
-}
+//     return std::move(search);
+// }
 
-auto MakePADAStar(
-    RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
-    const PlanningParams& params)
-    -> std::unique_ptr<SBPLPlanner>
-{
-    auto search = make_unique<AdaptivePlanner>(space, heuristic);
+// auto MakePADAStar(
+//     RobotPlanningSpace* space,
+//     RobotHeuristic* heuristic,
+//     const PlanningParams& params)
+//     -> std::unique_ptr<SBPLPlanner>
+// {
+//     auto search = make_unique<AdaptivePlanner>(space, heuristic);
 
-    double epsilon_plan;
-    params.param("epsilon_plan", epsilon_plan, 1.0);
-    search->set_plan_eps(epsilon_plan);
+//     double epsilon_plan;
+//     params.param("epsilon_plan", epsilon_plan, 1.0);
+//     search->set_plan_eps(epsilon_plan);
 
-    double epsilon_track;
-    params.param("epsilon_track", epsilon_track, 1.0);
-    search->set_track_eps(epsilon_track);
+//     double epsilon_track;
+//     params.param("epsilon_track", epsilon_track, 1.0);
+//     search->set_track_eps(epsilon_track);
 
-    AdaptivePlanner::TimeParameters tparams;
-    tparams.planning.bounded = true;
-    tparams.planning.improve = false;
-    tparams.planning.type = ARAStar::TimeParameters::TIME;
-    tparams.planning.max_allowed_time_init = clock::duration::zero();
-    tparams.planning.max_allowed_time = clock::duration::zero();
+//     AdaptivePlanner::TimeParameters tparams;
+//     tparams.planning.bounded = true;
+//     tparams.planning.improve = false;
+//     tparams.planning.type = ARAStar::TimeParameters::TIME;
+//     tparams.planning.max_allowed_time_init = clock::duration::zero();
+//     tparams.planning.max_allowed_time = clock::duration::zero();
 
-    tparams.tracking.bounded = true;
-    tparams.tracking.improve = false;
-    tparams.tracking.type = ARAStar::TimeParameters::TIME;
-    tparams.tracking.max_allowed_time_init = std::chrono::seconds(5);
-    tparams.tracking.max_allowed_time = clock::duration::zero();
+//     tparams.tracking.bounded = true;
+//     tparams.tracking.improve = false;
+//     tparams.tracking.type = ARAStar::TimeParameters::TIME;
+//     tparams.tracking.max_allowed_time_init = std::chrono::seconds(5);
+//     tparams.tracking.max_allowed_time = clock::duration::zero();
 
-    search->set_time_parameters(tparams);
+//     search->set_time_parameters(tparams);
 
-    return std::move(search);
-}
+//     return std::move(search);
+// }
 
 } // namespace smpl
 

@@ -220,7 +220,7 @@ void ManipLattice::GetSuccs(
     SMPL_DEBUG_STREAM_NAMED(G_EXPANSIONS_LOG, "  angles: " << parent_entry->state);
 
     auto* vis_name = "expansion";
-    SV_SHOW_DEBUG_NAMED(vis_name, getStateVisualization(parent_entry->state, vis_name));
+    SV_SHOW_INFO_NAMED(vis_name, getStateVisualization(parent_entry->state, vis_name));
 
     int goal_succ_count = 0;
 
@@ -1136,6 +1136,8 @@ bool ManipLattice::setGoalConfiguration(const GoalConstraint& goal)
 
     auto vis_name = "target_config";
     SV_SHOW_INFO_NAMED(vis_name, getStateVisualization(goal.angles, vis_name));
+    vis_name = "target_pose";
+    SV_SHOW_INFO_NAMED(vis_name, visual::MakePoseMarkers(goal.pose, m_viz_frame_id, vis_name));
 
     SMPL_INFO_NAMED(G_LOG, "A new goal has been set");
     SMPL_INFO_STREAM_NAMED(G_LOG, "  config: " << goal.angles);

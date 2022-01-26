@@ -4,6 +4,8 @@
 // standard includes
 #include <memory>
 #include <string>
+#include <vector>
+#include <sbpl/heuristics/heuristic.h>
 
 class SBPLPlanner;
 
@@ -103,39 +105,39 @@ auto MakeJointDistEGraphHeuristic(
 
 auto MakeARAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>;
 
 auto MakeAWAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>;
 
 auto MakeMHAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristics,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>;
 
 auto MakeLARAStar(
     RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
+    std::vector<Heuristic*>& heuristic,
     const PlanningParams& params)
     -> std::unique_ptr<SBPLPlanner>;
 
-auto MakeEGWAStar(
-    RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
-    const PlanningParams& params)
-    -> std::unique_ptr<SBPLPlanner>;
+// auto MakeEGWAStar(
+//     RobotPlanningSpace* space,
+//     std::vector<Heuristic*>& heuristic,
+//     const PlanningParams& params)
+//     -> std::unique_ptr<SBPLPlanner>;
 
-auto MakePADAStar(
-    RobotPlanningSpace* space,
-    RobotHeuristic* heuristic,
-    const PlanningParams& params)
-    -> std::unique_ptr<SBPLPlanner>;
+// auto MakePADAStar(
+//     RobotPlanningSpace* space,
+//     std::vector<Heuristic*>& heuristic,
+//     const PlanningParams& params)
+//     -> std::unique_ptr<SBPLPlanner>;
 
 } // namespace smpl
 

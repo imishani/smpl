@@ -717,7 +717,11 @@ bool SBPLPlanningContext::solve(planning_interface::MotionPlanResponse& res)
 
     ROS_DEBUG_NAMED(PP_LOGGER, "Solve!");
     moveit_msgs::MotionPlanResponse res_msg;
-    if (!m_planner->solve(scene_msg, req_msg, res_msg)) {
+    if (!m_planner->init_planner(scene_msg, req_msg, res_msg)) {
+        ROS_ERROR_NAMED(PP_LOGGER, "Failed to initialise planner.");
+        return false;
+    }
+    if (!m_planner->solve(req_msg, res_msg)) {
         res.trajectory_.reset();
         res.planning_time_ = res_msg.planning_time;
         res.error_code_ = res_msg.error_code;
