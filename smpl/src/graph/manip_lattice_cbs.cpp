@@ -235,6 +235,29 @@ void ManipLatticeCBS::GetSuccs(
 
     SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "  actions: %zu", actions.size());
 
+    // some robot configurations at the next timestep are constrained
+    // i.e. if the robot configuration is in collision with
+    // some movable object at a particular location at the next timestep,
+    // this action is invalid
+    bool cc_changed = false;
+    if (!m_constraints.empty())
+    {
+        int idx = 0;
+        for (size_t i = 0; i < m_constraints.size(); ++i)
+        {
+            if ((int)m_constraints[i].at(0) == parent_entry->t+1)
+            {
+                cc_changed = true;
+                // this constraint is on
+                // 1. update appropriate movable object
+                updateMovablePose(i);
+                // 2. add object to collision checker
+                processMovable(i, idx);
+                ++idx;
+            }
+        }
+    }
+
     // check actions for validity
     RobotCoord succ_coord(robot()->jointVariableCount(), 0);
     for (size_t i = 0; i < actions.size(); ++i) {
@@ -243,7 +266,7 @@ void ManipLatticeCBS::GetSuccs(
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "    action %zu:", i);
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "      waypoints: %zu", action.size());
 
-        if (!checkAction(parent_entry->state, action, parent_entry->t)) {
+        if (!checkAction(parent_entry->state, action)) {
             continue;
         }
 
@@ -281,6 +304,20 @@ void ManipLatticeCBS::GetSuccs(
 
     if (goal_succ_count > 0) {
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "Got %d goal successors!", goal_succ_count);
+    }
+
+    if (cc_changed)
+    {
+        int idx = 0;
+        for (size_t i = 0; i < m_constraints.size(); ++i)
+        {
+            if ((int)m_constraints[i].at(0) == parent_entry->t+1)
+            {
+                // 4. remove object from collision checker
+                processMovable(i, idx, true);
+                ++idx;
+            }
+        }
     }
 }
 
@@ -419,7 +456,7 @@ int ManipLatticeCBS::GetTrueCost(int parentID, int childID)
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "    action %zu:", num_actions++);
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "      waypoints %zu:", action.size());
 
-        if (!checkAction(parent_angles, action, parent_entry->t)) {
+        if (!checkAction(parent_angles, action)) {
             continue;
         }
 
@@ -613,7 +650,7 @@ bool WithinPathOrientationTolerance(
     return (std::fabs(roll) < tol[0]) && (std::fabs(pitch) < tol[1]) && (std::fabs(yaw) < tol[2]);
 }
 
-bool ManipLatticeCBS::checkAction(const RobotState& state, const Action& action, const int& t)
+bool ManipLatticeCBS::checkAction(const RobotState& state, const Action& action)
 {
     std::uint32_t violation_mask = 0x00000000;
 
@@ -659,54 +696,6 @@ bool ManipLatticeCBS::checkAction(const RobotState& state, const Action& action,
         }
     }
 
-    if (violation_mask) {
-        return false;
-    }
-
-    // some robot configurations at the next timestep are constrained
-    // i.e. if the robot configuration is in collision with
-    // some movable object at a particular location at the next timestep,
-    // this action is invalid
-    if (!m_constraints.empty())
-    {
-        bool cc_changed = false;
-        int idx = 0;
-        for (size_t i = 0; i < m_constraints.size(); ++i)
-        {
-            if ((int)m_constraints[i].at(0) == t+1)
-            {
-                cc_changed = true;
-                // this constraint is on
-                // 1. update appropriate movable object
-                updateMovablePose(i);
-                // 2. add object to collision checker
-                processMovable(i, idx);
-                ++idx;
-            }
-        }
-
-        if (cc_changed)
-        {
-            // 3. check collision
-            const RobotState& succ_state = action.back();
-            if (!collisionChecker()->isStateValid(succ_state)) {
-                violation_mask |= 0x00000002;
-            }
-
-            idx = 0;
-            for (size_t i = 0; i < m_constraints.size(); ++i)
-            {
-                if ((int)m_constraints[i].at(0) == t+1)
-                {
-                    // 4. remove object from collision checker
-                    processMovable(i, idx, true);
-                    ++idx;
-                }
-            }
-        }
-    }
-
-    // CBS violation
     if (violation_mask) {
         return false;
     }
@@ -1065,7 +1054,7 @@ bool ManipLatticeCBS::extractPath(
                 }
 
                 // check the validity of this transition
-                if (!checkAction(prev_state, action, prev_entry->t)) {
+                if (!checkAction(prev_state, action)) {
                     continue;
                 }
 

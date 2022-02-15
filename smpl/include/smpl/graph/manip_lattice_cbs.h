@@ -204,7 +204,7 @@ protected:
         ManipLatticeCBSState* HashEntry2,
         bool bState2IsGoal) const;
 
-    bool checkAction(const RobotState& state, const Action& action, const int& t);
+    bool checkAction(const RobotState& state, const Action& action);
 
     bool isGoal(const RobotState& state);
 
