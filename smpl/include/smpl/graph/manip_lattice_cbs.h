@@ -176,9 +176,6 @@ public:
 
     void SetConstraints(const std::vector<std::vector<double> >& constraints) override {
         m_constraints = constraints;
-        if (!m_constraints.empty()) {
-            SMPL_ERROR("%d constraints set", m_constraints.size());
-        }
     }
     void InitMovableSet(const std::vector<moveit_msgs::CollisionObject>& movables) override {
         m_movables.insert(m_movables.begin(), movables.begin(), movables.end());
