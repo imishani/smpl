@@ -91,17 +91,15 @@ public:
 
     bool init(const PlanningParams& params);
 
-    bool solve(
+    bool init_planner(
         const moveit_msgs::PlanningScene& planning_scene,
         const moveit_msgs::MotionPlanRequest& req,
-        moveit_msgs::MotionPlanResponse& res,
-        bool passthrough=true);
+        moveit_msgs::MotionPlanResponse& res);
 
-    bool run_solve(
+    bool solve(
         const moveit_msgs::MotionPlanRequest& req,
         moveit_msgs::MotionPlanResponse& res);
     bool solve_with_constraints(
-        const moveit_msgs::PlanningScene& planning_scene,
         const moveit_msgs::MotionPlanRequest& req,
         moveit_msgs::MotionPlanResponse& res,
         const std::vector<moveit_msgs::CollisionObject>& movables,

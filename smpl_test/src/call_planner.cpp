@@ -652,7 +652,11 @@ int main(int argc, char* argv[])
     ROS_INFO("Calling solve...");
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.robot_state = start_state;
-    if (!planner.solve(planning_scene, req, res)) {
+    if (!planner.init_planner(planning_scene, req, res)) {
+        ROS_ERROR("Failed to initialise planner.");
+        return 1;
+    }
+    if (!planner.solve(req, res)) {
         ROS_ERROR("Failed to plan.");
         return 1;
     }

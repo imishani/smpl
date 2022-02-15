@@ -698,12 +698,11 @@ bool WritePath(
     return true;
 }
 
-bool PlannerInterface::solve(
+bool PlannerInterface::init_planner(
     // TODO: this planning scene is probably not being used in any meaningful way
     const moveit_msgs::PlanningScene& planning_scene,
     const moveit_msgs::MotionPlanRequest& req,
-    moveit_msgs::MotionPlanResponse& res,
-    bool passthrough)
+    moveit_msgs::MotionPlanResponse& res)
 {
     ClearMotionPlanResponse(req, res);
 
@@ -740,6 +739,14 @@ bool PlannerInterface::solve(
         return false;
     }
 
+    return true;
+}
+
+bool PlannerInterface::solve(
+    const moveit_msgs::MotionPlanRequest& req,
+    moveit_msgs::MotionPlanResponse& res)
+{
+    auto then = clock::now();
     if (!setStart(req.start_state)) {
         SMPL_ERROR("Failed to set initial configuration of robot");
         res.planning_time = to_seconds(clock::now() - then);
@@ -759,17 +766,6 @@ bool PlannerInterface::solve(
     else {
         m_pspace->disablePathConstraints();
     }
-
-    if (passthrough) {
-        return run_solve(req, res);
-    }
-}
-
-bool PlannerInterface::run_solve(
-    const moveit_msgs::MotionPlanRequest& req,
-    moveit_msgs::MotionPlanResponse& res)
-{
-    auto then = clock::now();
 
     std::vector<RobotState> path;
     if (!plan(req.allowed_planning_time, path)) {
@@ -825,23 +821,16 @@ bool PlannerInterface::run_solve(
 }
 
 bool PlannerInterface::solve_with_constraints(
-    // TODO: this planning scene is probably not being used in any meaningful way
-    const moveit_msgs::PlanningScene& planning_scene,
     const moveit_msgs::MotionPlanRequest& req,
     moveit_msgs::MotionPlanResponse& res,
     const std::vector<moveit_msgs::CollisionObject>& movables,
     const std::vector<std::vector<double> >& cvecs)
 {
-    if (this->solve(planning_scene, req, res, false))
-    {
-        if (!cvecs.empty()) {
-            m_pspace->SetConstraints(cvecs);
-        }
-        m_pspace->InitMovableSet(movables);
-        return this->run_solve(req, res);
+    if (!cvecs.empty()) {
+        m_pspace->SetConstraints(cvecs);
     }
-
-    return false;
+    m_pspace->InitMovableSet(movables);
+    return this->solve(req, res);
 }
 
 static
