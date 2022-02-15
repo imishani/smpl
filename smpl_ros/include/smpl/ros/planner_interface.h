@@ -74,7 +74,7 @@ using HeuristicFactory = std::function<
 
 using PlannerFactory = std::function<
         std::unique_ptr<SBPLPlanner>(
-                RobotPlanningSpace*, RobotHeuristic*, const PlanningParams&)>;
+                RobotPlanningSpace*, std::vector<Heuristic*>&, const PlanningParams&)>;
 
 using GoalConstraints = std::vector<moveit_msgs::Constraints>;
 
@@ -172,6 +172,7 @@ protected:
 
     std::unique_ptr<RobotPlanningSpace> m_pspace;
     std::map<std::string, std::unique_ptr<RobotHeuristic>> m_heuristics;
+    std::vector<Heuristic*> m_heur_ptrs;
     std::unique_ptr<SBPLPlanner> m_planner;
 
     int m_sol_cost;
@@ -189,7 +190,7 @@ protected:
     bool parsePlannerID(
         const std::string& planner_id,
         std::string& space_name,
-        std::string& heuristic_name,
+        std::vector<std::string>& heuristic_names,
         std::string& search_name) const;
 
     bool reinitPlanner(const std::string& planner_id);

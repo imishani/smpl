@@ -290,8 +290,8 @@ PlannerInterface::PlannerInterface(
     m_planner_factories["awastar"] = MakeAWAStar;
     m_planner_factories["mhastar"] = MakeMHAStar;
     m_planner_factories["larastar"] = MakeLARAStar;
-    m_planner_factories["egwastar"] = MakeEGWAStar;
-    m_planner_factories["padastar"] = MakePADAStar;
+    // m_planner_factories["egwastar"] = MakeEGWAStar;
+    // m_planner_factories["padastar"] = MakePADAStar;
 }
 
 PlannerInterface::~PlannerInterface()
@@ -1430,10 +1430,14 @@ auto PlannerInterface::getBfsWallsVisualization() const -> visual::Marker
 bool PlannerInterface::parsePlannerID(
     const std::string& planner_id,
     std::string& space_name,
-    std::string& heuristic_name,
+    std::vector<std::string>& heuristic_names,
     std::string& search_name) const
 {
-    boost::regex alg_regex("(\\w+)(?:\\.(\\w+))?(?:\\.(\\w+))?");
+    std::string regex_string = "(\\w+)";
+    for (int counter = 0; counter < 15; counter++) {
+        regex_string += "(?:\\.(\\w+))?";
+    }
+    boost::regex alg_regex(regex_string);
 
     boost::smatch sm;
 
@@ -1453,17 +1457,23 @@ bool PlannerInterface::parsePlannerID(
     }
 
     if (sm.size() < 3 || sm[2].str().empty()) {
-        heuristic_name = default_heuristic_name;
-    } else {
-        heuristic_name = sm[2];
-    }
-
-    if (sm.size() < 4 || sm[3].str().empty()) {
         space_name = default_space_name;
     } else {
-        space_name = sm[3];
+        space_name = sm[2];
     }
-
+    if (sm.size() < 4 || sm[3].str().empty()) {
+        heuristic_names.push_back(default_heuristic_name);
+    } else {
+        if(search_name.find("mhastar") != std::string::npos)
+        {
+            for(int i = 3; i < sm.size(); i++) {
+                heuristic_names.push_back(sm[i]);
+            }
+        }
+        else {
+            heuristic_names.push_back(sm[3]);
+        }
+    }
     return true;
 }
 
@@ -1478,15 +1488,14 @@ bool PlannerInterface::reinitPlanner(const std::string& planner_id)
     SMPL_INFO_NAMED(PI_LOGGER, "Initialize planner");
 
     std::string search_name;
-    std::string heuristic_name;
+    std::vector<std::string> heuristic_names;
     std::string space_name;
-    if (!parsePlannerID(planner_id, space_name, heuristic_name, search_name)) {
+    if (!parsePlannerID(planner_id, space_name, heuristic_names, search_name)) {
         SMPL_ERROR("Failed to parse planner setup");
         return false;
     }
 
     SMPL_INFO_NAMED(PI_LOGGER, " -> Planning Space: %s", space_name.c_str());
-    SMPL_INFO_NAMED(PI_LOGGER, " -> Heuristic: %s", heuristic_name.c_str());
     SMPL_INFO_NAMED(PI_LOGGER, " -> Search: %s", search_name.c_str());
 
     auto psait = m_space_factories.find(space_name);
@@ -1501,21 +1510,28 @@ bool PlannerInterface::reinitPlanner(const std::string& planner_id)
         return false;
     }
 
-    auto hait = m_heuristic_factories.find(heuristic_name);
-    if (hait == end(m_heuristic_factories)) {
-        SMPL_ERROR("Unrecognized heuristic name '%s'", heuristic_name.c_str());
-        return false;
-    }
-
-    auto heuristic = hait->second(m_pspace.get(), m_params);
-    if (!heuristic) {
-        SMPL_ERROR("Failed to build heuristic '%s'", heuristic_name.c_str());
-        return false;
-    }
-
     // initialize heuristics
     m_heuristics.clear();
-    m_heuristics.insert(std::make_pair(heuristic_name, std::move(heuristic)));
+    m_heur_ptrs.clear();
+    for (auto heuristic_name: heuristic_names)
+    {
+        if (heuristic_name.empty()) continue;
+        SMPL_INFO_NAMED(PI_LOGGER, " -> Heuristic: %s", heuristic_name.c_str());
+
+        auto hait = m_heuristic_factories.find(heuristic_name);
+        if (hait == end(m_heuristic_factories)) {
+            SMPL_ERROR("Unrecognized heuristic name '%s'", heuristic_name.c_str());
+            return false;
+        }
+
+        auto heuristic = hait->second(m_pspace.get(), m_params);
+        if (!heuristic) {
+            SMPL_ERROR("Failed to build heuristic '%s'", heuristic_name.c_str());
+            return false;
+        }
+
+        m_heuristics.insert(std::make_pair(heuristic_name, std::move(heuristic)));
+    }
 
     for (auto& entry : m_heuristics) {
         m_pspace->insertHeuristic(entry.second.get());
@@ -1527,8 +1543,14 @@ bool PlannerInterface::reinitPlanner(const std::string& planner_id)
         return false;
     }
 
-    auto first_heuristic = begin(m_heuristics);
-    m_planner = pait->second(m_pspace.get(), first_heuristic->second.get(), m_params);
+    int i = 0;
+    for(auto heuristic = begin(m_heuristics); heuristic != m_heuristics.end(); heuristic++)
+    {
+        m_heur_ptrs.push_back(heuristic->second.get());
+        i++;
+    }
+
+    m_planner = pait->second(m_pspace.get(), m_heur_ptrs, m_params);
     if (!m_planner) {
         SMPL_ERROR("Failed to build planner '%s'", search_name.c_str());
         return false;
