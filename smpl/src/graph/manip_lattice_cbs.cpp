@@ -1241,21 +1241,16 @@ void ManipLatticeCBS::updateMovablePose(size_t c_id)
     }
 }
 
-bool ManipLatticeCBS::processMovable(size_t c_id, int idx, bool remove)
+bool ManipLatticeCBS::processMovable(size_t c_id, const int& idx, bool remove)
 {
     int mov_id = (int)m_constraints[c_id].at(1);
-    if (!remove) {
-        m_movables.at(m_movables_map[mov_id]).id += "_" + std::to_string(idx);
-    }
 
     if (m_movables.at(m_movables_map[mov_id]).mesh_poses.empty())
     {
         if (!setMovableMsg(mov_id, remove)) {
-            m_movables.at(m_movables_map[mov_id]).id = m_movables.at(m_movables_map[mov_id]).id.substr(0, m_movables.at(m_movables_map[mov_id]).id.find("_"));
             return false;
         }
-        if (!processMovableMsg(mov_id, remove)) {
-            m_movables.at(m_movables_map[mov_id]).id = m_movables.at(m_movables_map[mov_id]).id.substr(0, m_movables.at(m_movables_map[mov_id]).id.find("_"));
+        if (!processMovableMsg(mov_id, idx, remove)) {
             return false;
         }
     }
@@ -1267,11 +1262,7 @@ bool ManipLatticeCBS::processMovable(size_t c_id, int idx, bool remove)
         // }
     }
 
-    if (remove) {
-        m_movables.at(m_movables_map[mov_id]).id = m_movables.at(m_movables_map[mov_id]).id.substr(0, m_movables.at(m_movables_map[mov_id]).id.find("_"));
-    }
-
-    SV_SHOW_INFO(collisionChecker()->getCollisionWorldVisualization());
+    // SV_SHOW_INFO(collisionChecker()->getCollisionWorldVisualization());
     return true;
 }
 
@@ -1292,14 +1283,14 @@ bool ManipLatticeCBS::setMovableMsg(const int& mov_id, bool remove)
     return true;
 }
 
-bool ManipLatticeCBS::processMovableMsg(const int& mov_id, bool remove)
+bool ManipLatticeCBS::processMovableMsg(const int& mov_id, const int& idx, bool remove)
 {
     auto* obj_msg = &(m_movables.at(m_movables_map[mov_id]));
     if (obj_msg->operation == moveit_msgs::CollisionObject::ADD) {
-        return addMovableMsg(mov_id);
+        return addMovableMsg(mov_id, idx);
     }
     else if (obj_msg->operation == moveit_msgs::CollisionObject::REMOVE) {
-        return removeMovableMsg(mov_id);
+        return removeMovableMsg(mov_id, idx);
     }
     // else if (obj_msg->operation == moveit_msgs::CollisionObject::APPEND) {
     //  return appendMovableMsg(object);
@@ -1312,7 +1303,7 @@ bool ManipLatticeCBS::processMovableMsg(const int& mov_id, bool remove)
     }
 }
 
-bool ManipLatticeCBS::addMovableMsg(const int& mov_id)
+bool ManipLatticeCBS::addMovableMsg(const int& mov_id, const int& idx)
 {
     const auto& object = m_movables.at(m_movables_map[mov_id]);
 
@@ -1411,7 +1402,7 @@ bool ManipLatticeCBS::addMovableMsg(const int& mov_id)
 
     // create the collision object
     auto co = make_unique<collision::CollisionObject>();
-    co->id = object.id;
+    co->id = object.id + "_" + std::to_string(idx);
     co->shapes = std::move(shapes);
     co->shape_poses = std::move(shape_poses);
 
@@ -1419,12 +1410,13 @@ bool ManipLatticeCBS::addMovableMsg(const int& mov_id)
     return collisionChecker()->insertObject(collisionChecker()->m_collision_objects.back().get());
 }
 
-bool ManipLatticeCBS::removeMovableMsg(const int& mov_id)
+bool ManipLatticeCBS::removeMovableMsg(const int& mov_id, const int& idx)
 {
     const auto& object = m_movables.at(m_movables_map[mov_id]);
 
     // find the collision object with this name
-    auto* _object = collisionChecker()->findCollisionObject(object.id);
+    std::string id = object.id + "_" + std::to_string(idx);
+    auto* _object = collisionChecker()->findCollisionObject(id);
     if (!_object) {
         return false;
     }

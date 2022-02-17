@@ -255,11 +255,11 @@ private:
 
     void initMovablesMap();
     void updateMovablePose(size_t c_id);
-    bool processMovable(size_t c_id, int idx, bool remove=false);
+    bool processMovable(size_t c_id, const int& idx, bool remove=false);
     bool setMovableMsg(const int& mov_id, bool remove);
-    bool processMovableMsg(const int& mov_id, bool remove);
-    bool addMovableMsg(const int& mov_id);
-    bool removeMovableMsg(const int& mov_id);
+    bool processMovableMsg(const int& mov_id, const int& idx, bool remove);
+    bool addMovableMsg(const int& mov_id, const int& idx);
+    bool removeMovableMsg(const int& mov_id, const int& idx);
 
     /// \name planning
     ///@{
