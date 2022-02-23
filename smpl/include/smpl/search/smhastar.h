@@ -148,6 +148,8 @@ public:
 
     /// \sa SBPLPlanner::get_n_expands() const
     virtual int     get_n_expands() const;
+    /// \sa SBPLPlanner::get_min_f() const
+    virtual int     get_min_f() const;
     ///\sa SBPLPlanner::get_n_expands_init_solution()
     virtual int     get_n_expands_init_solution();
     /// \sa SBPLPlanner::get_search_states(std::vector<PlannerStates>*)
@@ -184,6 +186,7 @@ private:
     ReplanParams m_params = ReplanParams(0.0);
     double m_initial_eps_mha = 1.0;
     int m_max_expansions = 0;
+    int m_min_f = 0;
 
     double m_eps = 1.0;           ///< current w_1
     double m_eps_mha = 1.0;       ///< current w_2

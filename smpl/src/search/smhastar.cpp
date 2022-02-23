@@ -178,6 +178,7 @@ int SMHAStar::replan(std::vector<int>* solution, ReplanParams params, int* solco
         m_open[i].push(&m_start_state->od[i]);
         SMPL_DEBUG_NAMED(LOG, "Inserted start state %d into search %d with f = %d", m_start_state->state_id, i, key);
     }
+    m_min_f = m_start_state->od[0].f;
 
     double end_time = GetTime();
     m_elapsed += (end_time - start_time);
@@ -299,6 +300,11 @@ double SMHAStar::get_initial_eps_planning_time()
 int SMHAStar::get_n_expands() const
 {
     return m_num_expansions;
+}
+
+int SMHAStar::get_min_f() const
+{
+    return m_min_f;
 }
 
 int SMHAStar::get_n_expands_init_solution()
@@ -542,6 +548,10 @@ void SMHAStar::expand(SMHAState* state, int hidx)
             succ_state->bp = state;
             if (!closed_in_anc_search(succ_state)) {
                 int fanchor = compute_key(succ_state, 0);
+                if (fanchor < m_min_f) {
+                    m_min_f = fanchor;
+                }
+
                 succ_state->od[0].f = fanchor;
                 insert_or_update(succ_state, 0);
                 SMPL_DEBUG_NAMED(LOG, "  Update in search %d with f = %d", 0, fanchor);

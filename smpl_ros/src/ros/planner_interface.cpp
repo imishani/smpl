@@ -1340,6 +1340,7 @@ auto PlannerInterface::getPlannerStats() -> std::map<std::string, double>
     stats["solution epsilon"] = m_planner->get_solution_eps();
     stats["expansions"] = m_planner->get_n_expands();
     stats["solution cost"] = m_sol_cost;
+    stats["min f val cost"] = m_planner->get_min_f();
     return stats;
 }
 
