@@ -203,4 +203,20 @@ EigenSTL::vector_Vector3d PropagationDistanceField::toAlignedVector(
     return vout;
 }
 
+const MoveitVoxel* PropagationDistanceField::getNearestCell(
+    double x, double y, double z,
+    double& dist, Eigen::Vector3i& pos) const
+{
+    int gx, gy, gz;
+    worldToGrid(x, y, z, gx, gy, gz);
+    return getNearestCell(gx, gy, gz, dist, pos);
+}
+
+const MoveitVoxel* PropagationDistanceField::getNearestCell(
+    int x, int y, int z,
+    double& dist, Eigen::Vector3i& pos) const
+{
+    return m_df.getNearestCell(x, y, z, dist, pos);
+}
+
 } // namespace smpl

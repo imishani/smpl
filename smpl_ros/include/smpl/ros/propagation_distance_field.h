@@ -40,6 +40,8 @@
 
 namespace smpl {
 
+using MoveitVoxel = distance_field::PropDistanceFieldVoxel;
+
 class PropagationDistanceField : public DistanceMapInterface
 {
 public:
@@ -94,6 +96,9 @@ public:
     void worldToGrid(
         double world_x, double world_y, double world_z,
         int& x, int& y, int& z) const override;
+
+    const MoveitVoxel* getNearestCell(double x, double y, double z, double& dist, Eigen::Vector3i& pos) const;
+    const MoveitVoxel* getNearestCell(int x, int y, int z, double& dist, Eigen::Vector3i& pos) const;
 
 private:
 
