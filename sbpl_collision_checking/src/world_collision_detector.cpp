@@ -34,7 +34,7 @@
 // system includes
 #include <ros/console.h>
 
-#include "collision_operations.h"
+#include <sbpl_collision_checking/collision_operations.h>
 
 namespace smpl {
 namespace collision {

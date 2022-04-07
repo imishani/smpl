@@ -37,7 +37,7 @@
 #include <smpl/geometry/intersect.h>
 
 // project includes
-#include "collision_operations.h"
+#include <sbpl_collision_checking/collision_operations.h>
 
 namespace smpl {
 namespace collision {
