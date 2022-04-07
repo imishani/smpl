@@ -224,6 +224,33 @@ void OccupancyGrid::getOccupiedVoxels(
             });
 }
 
+/// Get all occupied voxels within an axis-aligned cuboid region of the grid.
+void OccupancyGrid::getOccupiedVoxels(
+    double x_center,
+    double y_center,
+    double z_center,
+    double x_size, double y_size, double z_size,
+    std::vector<Vector3>& voxels) const
+{
+    int x_c, y_c, z_c;
+    worldToGrid(x_center, y_center, z_center, x_c, y_c, z_c);
+    int x_s = (x_size / resolution()) + 0.5;
+    int y_s = (y_size / resolution()) + 0.5;
+    int z_s = (z_size / resolution()) + 0.5;
+
+    iterateCells(
+            x_c - x_s, y_c - y_s, z_c - z_s,
+            x_c + x_s, y_c + y_s, z_c + z_s,
+            [&](int x, int y, int z)
+            {
+                if (m_grid->getCellDistance(x, y, z) <= 0.0) {
+                    double wx, wy, wz;
+                    m_grid->gridToWorld(x, y, z, wx, wy, wz);
+                    voxels.emplace_back(wx, wy, wz);
+                }
+            });
+}
+
 /// Gather all the obstacle points in the occupancy grid.
 void OccupancyGrid::getOccupiedVoxels(
     std::vector<Vector3>& voxels) const

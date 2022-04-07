@@ -121,6 +121,13 @@ public:
         double z_center,
         double radius,
         std::vector<Vector3>& voxels) const;
+
+    void getOccupiedVoxels(
+        double x_center,
+        double y_center,
+        double z_center,
+        double x_size, double y_size, double z_size,
+        std::vector<Vector3>& voxels) const;
     ///@}
 
     /// \name Distance Lookups
