@@ -37,7 +37,7 @@ include_directories(include)
 include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
 include_directories(SYSTEM ${orocos_kdl_INCLUDE_DIRS})
 
-add_library(sbpl_kdl_robot_model src/kdl_robot_model.cpp)
+add_library(sbpl_kdl_robot_model src/kdl_robot_model.cpp src/pushing_kdl_robot_model.cpp)
 target_link_libraries(sbpl_kdl_robot_model ${catkin_LIBRARIES})
 target_link_libraries(sbpl_kdl_robot_model ${orocos_kdl_LIBRARIES})
 target_link_libraries(sbpl_kdl_robot_model smpl::smpl)
