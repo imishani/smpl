@@ -149,6 +149,8 @@ public:
         -> std::vector<visual::Marker>;
     ///@}
 
+    void ProfilePath(RobotModel* robot, trajectory_msgs::JointTrajectory& traj);
+
 protected:
 
     RobotModel* m_robot;

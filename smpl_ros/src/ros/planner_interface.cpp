@@ -480,8 +480,7 @@ void ConvertJointVariablePathToJointTrajectory(
     }
 }
 
-static
-void ProfilePath(RobotModel* robot, trajectory_msgs::JointTrajectory& traj)
+void PlannerInterface::ProfilePath(RobotModel* robot, trajectory_msgs::JointTrajectory& traj)
 {
     if (traj.points.empty()) {
         return;
@@ -499,7 +498,7 @@ void ProfilePath(RobotModel* robot, trajectory_msgs::JointTrajectory& traj)
         for (size_t jidx = 0; jidx < joint_names.size(); ++jidx) {
             auto from_pos = prev_point.positions[jidx];
             auto to_pos = curr_point.positions[jidx];
-            auto vel = robot->velLimit(jidx);
+            auto vel = robot->velLimit(jidx) * 0.1;
             if (vel <= 0.0) {
                 continue;
             }
