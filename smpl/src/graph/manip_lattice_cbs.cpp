@@ -75,7 +75,8 @@ bool ManipLatticeCBS::init(
     RobotModel* _robot,
     CollisionChecker* checker,
     const std::vector<double>& resolutions,
-    ActionSpace* actions)
+    ActionSpace* actions,
+    CollisionChecker* checker_m)
 {
     SMPL_DEBUG_NAMED(G_LOG, "Initialize Manip Lattice");
 
@@ -89,7 +90,7 @@ bool ManipLatticeCBS::init(
         return false;
     }
 
-    if (!RobotPlanningSpace::init(_robot, checker)) {
+    if (!RobotPlanningSpace::init(_robot, checker, checker_m)) {
         SMPL_ERROR_NAMED(G_LOG, "Failed to initialize Robot Planning Space");
         return false;
     }

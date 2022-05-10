@@ -41,7 +41,10 @@ RobotPlanningSpace::~RobotPlanningSpace()
 {
 }
 
-bool RobotPlanningSpace::init(RobotModel* robot, CollisionChecker* checker)
+bool RobotPlanningSpace::init(
+    RobotModel* robot,
+    CollisionChecker* checker,
+    CollisionChecker* checker_m)
 {
     if (!robot || !checker) {
         return false;
@@ -49,6 +52,7 @@ bool RobotPlanningSpace::init(RobotModel* robot, CollisionChecker* checker)
 
     m_robot = robot;
     m_checker = checker;
+    m_checker_m = checker_m;
     return true;
 }
 

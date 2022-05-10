@@ -108,7 +108,8 @@ public:
         RobotModel* robot,
         CollisionChecker* checker,
         const std::vector<double>& resolutions,
-        ActionSpace* actions);
+        ActionSpace* actions,
+        CollisionChecker* checker_m);
 
     auto resolutions() const -> const std::vector<double>& { return m_coord_deltas; }
     auto actionSpace() -> ActionSpace* { return m_actions; }

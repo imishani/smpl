@@ -31,42 +31,48 @@ auto MakeManipLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 auto MakeManipLatticeEGraph(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 auto MakeManipLatticeCBS(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 auto MakeWorkspaceLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 auto MakeWorkspaceLatticeEGraph(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 auto MakeAdaptiveWorkspaceLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m=nullptr)
     -> std::unique_ptr<RobotPlanningSpace>;
 
 /////////////////////////

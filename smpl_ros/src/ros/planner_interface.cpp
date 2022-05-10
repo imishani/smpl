@@ -181,10 +181,12 @@ bool IsJointStateGoal(const GoalConstraints& goal_constraints)
 PlannerInterface::PlannerInterface(
     RobotModel* robot,
     CollisionChecker* checker,
-    OccupancyGrid* grid)
+    OccupancyGrid* grid,
+    CollisionChecker* checker_m)
 :
     m_robot(robot),
     m_checker(checker),
+    m_checker_m(checker_m),
     m_grid(grid),
     m_fk_iface(nullptr),
     m_params(),
@@ -206,15 +208,17 @@ PlannerInterface::PlannerInterface(
     m_space_factories["manip"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
-        return MakeManipLattice(r, c, p, m_grid);
+        return MakeManipLattice(r, c, p, m_grid, c_m);
     };
 
     m_space_factories["manip_lattice_egraph"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
         return MakeManipLatticeEGraph(r, c, p, m_grid);
     };
@@ -222,15 +226,17 @@ PlannerInterface::PlannerInterface(
     m_space_factories["manip_cbs"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
-        return MakeManipLatticeCBS(r, c, p, m_grid);
+        return MakeManipLatticeCBS(r, c, p, m_grid, c_m);
     };
 
     m_space_factories["workspace"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
         return MakeWorkspaceLattice(r, c, p, m_grid);
     };
@@ -238,7 +244,8 @@ PlannerInterface::PlannerInterface(
     m_space_factories["workspace_egraph"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
         return MakeWorkspaceLatticeEGraph(r, c, p, m_grid);
     };
@@ -246,7 +253,8 @@ PlannerInterface::PlannerInterface(
     m_space_factories["adaptive_workspace_lattice"] = [this](
         RobotModel* r,
         CollisionChecker* c,
-        const PlanningParams& p)
+        const PlanningParams& p,
+        CollisionChecker* c_m)
     {
         return MakeAdaptiveWorkspaceLattice(r, c, p, m_grid);
     };
@@ -1493,7 +1501,7 @@ bool PlannerInterface::reinitPlanner(const std::string& planner_id)
         return false;
     }
 
-    m_pspace = psait->second(m_robot, m_checker, m_params);
+    m_pspace = psait->second(m_robot, m_checker, m_params, m_checker_m);
     if (!m_pspace) {
         SMPL_ERROR("Failed to build planning space '%s'", space_name.c_str());
         return false;

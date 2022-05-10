@@ -110,7 +110,8 @@ auto MakeManipLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     ////////////////
@@ -169,7 +170,7 @@ auto MakeManipLattice(
 
     auto space = make_unique<SimpleManipLattice>();
 
-    if (!space->init(robot, checker, resolutions, &space->actions)) {
+    if (!space->init(robot, checker, resolutions, &space->actions, checker_m)) {
         SMPL_ERROR_NAMED(PI_LOGGER, "Failed to initialize Manip Lattice");
         return nullptr;
     }
@@ -225,7 +226,8 @@ auto MakeManipLatticeEGraph(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     ////////////////
@@ -309,7 +311,8 @@ auto MakeManipLatticeCBS(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     ////////////////
@@ -368,7 +371,7 @@ auto MakeManipLatticeCBS(
 
     auto space = make_unique<SimpleManipLattice>();
 
-    if (!space->init(robot, checker, resolutions, &space->actions)) {
+    if (!space->init(robot, checker, resolutions, &space->actions, checker_m)) {
         SMPL_ERROR_NAMED(PI_LOGGER, "Failed to initialize Manip Lattice");
         return nullptr;
     }
@@ -484,7 +487,8 @@ auto MakeWorkspaceLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     SMPL_INFO_NAMED(PI_LOGGER, "Initialize Workspace Lattice");
@@ -524,7 +528,8 @@ auto MakeWorkspaceLatticeEGraph(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     SMPL_INFO_NAMED(PI_LOGGER, "Initialize Workspace Lattice E-Graph");
@@ -572,7 +577,8 @@ auto MakeAdaptiveWorkspaceLattice(
     RobotModel* robot,
     CollisionChecker* checker,
     const PlanningParams& params,
-    const OccupancyGrid* grid)
+    const OccupancyGrid* grid,
+    CollisionChecker* checker_m)
     -> std::unique_ptr<RobotPlanningSpace>
 {
     SMPL_INFO_NAMED(PI_LOGGER, "Initialize Workspace Lattice");

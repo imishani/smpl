@@ -66,7 +66,7 @@ namespace smpl {
 
 using PlanningSpaceFactory = std::function<
         std::unique_ptr<RobotPlanningSpace>(
-                RobotModel*, CollisionChecker*, const PlanningParams&)>;
+                RobotModel*, CollisionChecker*, const PlanningParams&, CollisionChecker*)>;
 
 using HeuristicFactory = std::function<
         std::unique_ptr<RobotHeuristic>(
@@ -85,7 +85,8 @@ public:
     PlannerInterface(
         RobotModel* robot,
         CollisionChecker* checker,
-        OccupancyGrid* grid);
+        OccupancyGrid* grid,
+        CollisionChecker* checker_m=nullptr);
 
     ~PlannerInterface();
 
@@ -155,6 +156,7 @@ protected:
 
     RobotModel* m_robot;
     CollisionChecker* m_checker;
+    CollisionChecker* m_checker_m;
     OccupancyGrid* m_grid;
 
     ForwardKinematicsInterface* m_fk_iface;
