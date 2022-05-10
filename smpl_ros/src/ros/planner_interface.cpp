@@ -768,7 +768,7 @@ bool PlannerInterface::solve(
 
     std::vector<RobotState> path;
     if (!plan(req.allowed_planning_time, path)) {
-        SMPL_ERROR("Failed to plan within alotted time frame (%0.2f seconds, %d expansions)", req.allowed_planning_time, m_planner->get_n_expands());
+        // SMPL_ERROR("Failed to plan within alotted time frame (%0.2f seconds, %d expansions)", req.allowed_planning_time, m_planner->get_n_expands());
         res.planning_time = to_seconds(clock::now() - then);
         res.error_code.val = moveit_msgs::MoveItErrorCodes::PLANNING_FAILED;
         return false;
