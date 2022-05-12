@@ -135,6 +135,10 @@ public:
         -> const RobotMotionCollisionModelConstPtr&
     { return m_rmcm; }
 
+    auto planningVariables() -> const std::vector<int>& {
+        return m_planning_joint_to_collision_model_indices;
+    }
+
     auto grid() -> OccupancyGrid* { return m_grid; }
     auto grid() const -> const OccupancyGrid* { return m_grid; }
 
