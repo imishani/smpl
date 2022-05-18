@@ -511,6 +511,11 @@ auto CollisionSpace::getCollisionModelVisualization(const RobotState& state)
     return markers;
 }
 
+void CollisionSpace::UpdateGroup(const std::string& group_name)
+{
+    m_scm->UpdateGroup(group_name);
+}
+
 /// \brief Initialize the Collision Space
 /// \param urdf_string String description of the robot in URDF format
 /// \param config Collision model configuration

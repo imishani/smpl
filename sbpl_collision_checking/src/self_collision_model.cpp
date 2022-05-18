@@ -406,6 +406,12 @@ bool SelfCollisionModel::collisionDetails(
     return res;
 }
 
+void SelfCollisionModel::UpdateGroup(const std::string& group_name)
+{
+    int gidx = m_rcm->groupIndex(group_name);
+    updateGroup(gidx);
+}
+
 /// Switch to checking for a new collision group
 ///
 /// Removes voxels from groups that are inside the new collision group and add

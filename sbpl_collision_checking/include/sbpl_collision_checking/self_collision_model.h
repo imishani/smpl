@@ -133,6 +133,8 @@ public:
     // TODO: contacts checks
     // TODO: detailed checks
 
+    void UpdateGroup(const std::string& group_name);
+
 private:
 
     OccupancyGrid*                          m_grid;

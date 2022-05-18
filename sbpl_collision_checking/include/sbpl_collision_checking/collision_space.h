@@ -220,6 +220,8 @@ public:
         -> std::vector<visual::Marker> override;
     ///@}
 
+    void UpdateGroup(const std::string& group_name);
+
 public:
 
     OccupancyGrid*                  m_grid;
