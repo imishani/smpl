@@ -94,6 +94,8 @@ struct hash<smpl::ManipLatticeCBSState>
 
 namespace smpl {
 
+class SMPLObject;
+
 /// \class Discrete space constructed by expliciting discretizing each joint
 class ManipLatticeCBS :
     public RobotPlanningSpace,
@@ -178,7 +180,7 @@ public:
     void SetConstraints(const std::vector<std::vector<double> >& constraints) override {
         m_constraints = constraints;
     }
-    void InitMovableSet(const std::vector<moveit_msgs::CollisionObject>& movables) override {
+    void InitMovableSet(const std::vector<SMPLObject*>& movables) override {
         m_movables.insert(m_movables.begin(), movables.begin(), movables.end());
         initMovablesMap();
     }
@@ -240,7 +242,7 @@ private:
 
     std::string m_viz_frame_id;
 
-    std::vector<moveit_msgs::CollisionObject> m_movables;
+    std::vector<SMPLObject*> m_movables;
     std::unordered_map<int, size_t> m_movables_map;
     std::vector<std::vector<double> > m_constraints;
 
@@ -255,12 +257,9 @@ private:
     void startNewSearch();
 
     void initMovablesMap();
-    void updateMovablePose(size_t c_id);
-    bool processMovable(size_t c_id, const int& idx, bool remove=false);
-    bool setMovableMsg(const int& mov_id, bool remove);
-    bool processMovableMsg(const int& mov_id, const int& idx, bool remove);
-    bool addMovableMsg(const int& mov_id, const int& idx);
-    bool removeMovableMsg(const int& mov_id, const int& idx);
+    bool checkRobotMovableObjectSpheresCollision(
+        const RobotState& rstate,
+        size_t c_id);
 
     /// \name planning
     ///@{

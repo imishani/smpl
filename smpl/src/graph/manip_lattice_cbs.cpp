@@ -40,6 +40,7 @@
 // system includes
 #include <sbpl/planners/planner.h>
 
+#include <smpl/robot_model.h>
 #include <smpl/angles.h>
 #include <smpl/console/console.h>
 #include <smpl/console/nonstd.h>
@@ -198,6 +199,31 @@ void ManipLatticeCBS::PrintState(int stateID, bool verbose, FILE* fout)
     }
 }
 
+bool ManipLatticeCBS::checkRobotMovableObjectSpheresCollision(
+    const RobotState& rstate,
+    size_t c_id)
+{
+    return false;
+    // SMPL_ERROR("checkRobotMovableObjectSpheresCollision");
+
+    // int mov_id = (int)m_constraints[c_id].at(1);
+    // std::vector<double> mov_state(m_constraints[c_id].begin() + 2, m_constraints[c_id].end());
+    // Affine3 T = Eigen::Translation3d(m_constraints[c_id][2], m_constraints[c_id][3], m_constraints[c_id][4]) *
+    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ()) *
+    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY()) *
+    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX());
+
+    // auto movable_obj = m_movables.at(m_movables_map[mov_id]);
+    // movable_obj->SetTransform(T);
+
+    // // auto cc_cs = dynamic_cast<collision::CollisionSpace&>(collisionChecker());
+    // collisionChecker()->updateState(rstate);
+    // double dist;
+    // return collisionChecker()->checkRobotCollisionWithMovableObject(
+    //                     movable_obj,
+    //                     dist);
+}
+
 void ManipLatticeCBS::GetSuccs(
     int state_id,
     std::vector<int>* succs,
@@ -236,29 +262,6 @@ void ManipLatticeCBS::GetSuccs(
 
     SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "  actions: %zu", actions.size());
 
-    // some robot configurations at the next timestep are constrained
-    // i.e. if the robot configuration is in collision with
-    // some movable object at a particular location at the next timestep,
-    // this action is invalid
-    bool cc_changed = false;
-    if (!m_constraints.empty())
-    {
-        int idx = 0;
-        for (size_t i = 0; i < m_constraints.size(); ++i)
-        {
-            if ((int)m_constraints[i].at(0) == parent_entry->t+1)
-            {
-                cc_changed = true;
-                // this constraint is on
-                // 1. update appropriate movable object
-                updateMovablePose(i);
-                // 2. add object to collision checker
-                processMovable(i, idx);
-                ++idx;
-            }
-        }
-    }
-
     // check actions for validity
     RobotCoord succ_coord(robot()->jointVariableCount(), 0);
     for (size_t i = 0; i < actions.size(); ++i) {
@@ -268,6 +271,30 @@ void ManipLatticeCBS::GetSuccs(
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "      waypoints: %zu", action.size());
 
         if (!checkAction(parent_entry->state, action)) {
+            continue;
+        }
+
+        // some robot configurations at the next timestep are constrained
+        // i.e. if the robot configuration is in collision with
+        // some movable object at a particular location at the next timestep,
+        // this action is invalid
+        bool constrained = false;
+        if (!m_constraints.empty())
+        {
+            int idx = 0;
+            for (size_t i = 0; i < m_constraints.size(); ++i)
+            {
+                if ((int)m_constraints[i].at(0) == parent_entry->t+1)
+                {
+                    if (checkRobotMovableObjectSpheresCollision(action.back(), i))
+                    {
+                        constrained = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (constrained) {
             continue;
         }
 
@@ -305,20 +332,6 @@ void ManipLatticeCBS::GetSuccs(
 
     if (goal_succ_count > 0) {
         SMPL_DEBUG_NAMED(G_EXPANSIONS_LOG, "Got %d goal successors!", goal_succ_count);
-    }
-
-    if (cc_changed)
-    {
-        int idx = 0;
-        for (size_t i = 0; i < m_constraints.size(); ++i)
-        {
-            if ((int)m_constraints[i].at(0) == parent_entry->t+1)
-            {
-                // 4. remove object from collision checker
-                processMovable(i, idx, true);
-                ++idx;
-            }
-        }
     }
 }
 
@@ -1197,260 +1210,9 @@ bool ManipLatticeCBS::setUserGoal(const GoalConstraint& goal)
 
 void ManipLatticeCBS::initMovablesMap()
 {
-    SMPL_WARN("Try init-ing the movables map");
     for (size_t i = 0; i < m_movables.size(); ++i) {
-        m_movables_map[std::stoi(m_movables.at(i).id)] = i;
+        m_movables_map[m_movables.at(i)->ID()] = i;
     }
-}
-
-void ManipLatticeCBS::updateMovablePose(size_t c_id)
-{
-    int mov_id = (int)m_constraints[c_id].at(1);
-    // Update Moveit pose
-    geometry_msgs::Pose moveit_pose;
-    Eigen::Quaterniond q;
-    geometry_msgs::Quaternion orientation;
-
-    moveit_pose.position.x = m_constraints[c_id].at(2);
-    moveit_pose.position.y = m_constraints[c_id].at(3);
-    moveit_pose.position.z = m_constraints[c_id].at(4);
-
-    double yaw_offset = 0.0;
-    if (!m_movables.at(m_movables_map[mov_id]).mesh_poses.empty())
-    {
-        // CBS TODO: accound for ycb objects
-        // auto itr2 = YCB_OBJECT_DIMS.find(shape);
-        // if (itr2 != YCB_OBJECT_DIMS.end()) {
-        //     yaw_offset = itr2->second.at(3);
-        // }
-    }
-
-    smpl::angles::from_euler_zyx(m_constraints[c_id].at(7) - yaw_offset, m_constraints[c_id].at(6), m_constraints[c_id].at(5), q);
-    orientation.x = q.x();
-    orientation.y = q.y();
-    orientation.z = q.z();
-    orientation.w = q.w();
-    // tf::quaternionEigenToMsg(q, orientation);
-
-    moveit_pose.orientation = orientation;
-
-    if (!m_movables.at(m_movables_map[mov_id]).mesh_poses.empty()) {
-        m_movables.at(m_movables_map[mov_id]).mesh_poses[0] = moveit_pose;
-    }
-    else {
-        m_movables.at(m_movables_map[mov_id]).primitive_poses[0] = moveit_pose;
-    }
-}
-
-bool ManipLatticeCBS::processMovable(size_t c_id, const int& idx, bool remove)
-{
-    int mov_id = (int)m_constraints[c_id].at(1);
-
-    if (m_movables.at(m_movables_map[mov_id]).mesh_poses.empty())
-    {
-        if (!setMovableMsg(mov_id, remove)) {
-            return false;
-        }
-        if (!processMovableMsg(mov_id, idx, remove)) {
-            return false;
-        }
-    }
-    else
-    {
-        // CBS TODO: accound for ycb objects
-        // if (!processSTLMesh(obs, remove)) {
-        //     return false;
-        // }
-    }
-
-    // SV_SHOW_INFO(collisionChecker()->getCollisionWorldVisualization());
-    return true;
-}
-
-bool ManipLatticeCBS::setMovableMsg(const int& mov_id, bool remove)
-{
-    auto* obj_msg = &(m_movables.at(m_movables_map[mov_id]));
-
-    obj_msg->operation = remove ? moveit_msgs::CollisionObject::REMOVE :
-                                        moveit_msgs::CollisionObject::ADD;
-
-    if (remove) {
-        return true;
-    }
-
-    obj_msg->header.frame_id = collisionChecker()->getReferenceFrame();
-    obj_msg->header.stamp = ros::Time::now();
-
-    return true;
-}
-
-bool ManipLatticeCBS::processMovableMsg(const int& mov_id, const int& idx, bool remove)
-{
-    auto* obj_msg = &(m_movables.at(m_movables_map[mov_id]));
-    if (obj_msg->operation == moveit_msgs::CollisionObject::ADD) {
-        return addMovableMsg(mov_id, idx);
-    }
-    else if (obj_msg->operation == moveit_msgs::CollisionObject::REMOVE) {
-        return removeMovableMsg(mov_id, idx);
-    }
-    // else if (obj_msg->operation == moveit_msgs::CollisionObject::APPEND) {
-    //  return appendMovableMsg(object);
-    // }
-    // else if (obj_msg->operation == moveit_msgs::CollisionObject::MOVE) {
-    //  return moveMovableMsg(object);
-    // }
-    else {
-        return false;
-    }
-}
-
-bool ManipLatticeCBS::addMovableMsg(const int& mov_id, const int& idx)
-{
-    const auto& object = m_movables.at(m_movables_map[mov_id]);
-
-    // if (collisionChecker()->worldCollisionModel()->hasObjectWithName(object.id)) {
-    //     return false;
-    // }
-
-    if (object.header.frame_id != collisionChecker()->getReferenceFrame()) {
-        ROS_ERROR("Collision object must be specified in the Collision Space's reference frame (%s)", collisionChecker()->getReferenceFrame().c_str());
-        return false;
-    }
-
-    std::vector<collision::CollisionShape*> shapes;
-    collision::AlignedVector<Eigen::Affine3d> shape_poses;
-
-    for (size_t i = 0; i < object.primitives.size(); ++i) {
-        auto& prim = object.primitives[i];
-
-        std::unique_ptr<collision::CollisionShape> shape;
-        switch (prim.type) {
-        case shape_msgs::SolidPrimitive::BOX:
-            shape = make_unique<collision::BoxShape>(
-                    prim.dimensions[shape_msgs::SolidPrimitive::BOX_X],
-                    prim.dimensions[shape_msgs::SolidPrimitive::BOX_Y],
-                    prim.dimensions[shape_msgs::SolidPrimitive::BOX_Z]);
-            break;
-        case shape_msgs::SolidPrimitive::SPHERE:
-            shape = make_unique<collision::SphereShape>(
-                    prim.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS]);
-            break;
-        case shape_msgs::SolidPrimitive::CYLINDER:
-            shape = make_unique<collision::CylinderShape>(
-                    prim.dimensions[shape_msgs::SolidPrimitive::CYLINDER_RADIUS],
-                    prim.dimensions[shape_msgs::SolidPrimitive::CYLINDER_HEIGHT]);
-            break;
-        case shape_msgs::SolidPrimitive::CONE:
-            shape = make_unique<collision::ConeShape>(
-                    prim.dimensions[shape_msgs::SolidPrimitive::CONE_RADIUS],
-                    prim.dimensions[shape_msgs::SolidPrimitive::CONE_HEIGHT]);
-            break;
-        default:
-            assert(0);
-        }
-
-        collisionChecker()->m_collision_shapes.push_back(std::move(shape));
-        shapes.push_back(collisionChecker()->m_collision_shapes.back().get());
-
-        auto& prim_pose = object.primitive_poses[i];
-        Eigen::Affine3d transform = Eigen::Translation3d(prim_pose.position.x,
-                                        prim_pose.position.y,
-                                        prim_pose.position.z) *
-                                    Eigen::Quaterniond(prim_pose.orientation.w,
-                                        prim_pose.orientation.x,
-                                        prim_pose.orientation.y,
-                                        prim_pose.orientation.z);
-        // tf::poseMsgToEigen(prim_pose, transform);
-        shape_poses.push_back(transform);
-    }
-
-    for (size_t i = 0; i < object.planes.size(); ++i) {
-        auto& plane = object.planes[i];
-
-        auto shape = make_unique<collision::PlaneShape>(
-                plane.coef[0], plane.coef[1], plane.coef[2], plane.coef[3]);
-        collisionChecker()->m_collision_shapes.push_back(std::move(shape));
-        shapes.push_back(collisionChecker()->m_collision_shapes.back().get());
-
-        auto& plane_pose = object.plane_poses[i];
-        Eigen::Affine3d transform = Eigen::Translation3d(plane_pose.position.x,
-                                        plane_pose.position.y,
-                                        plane_pose.position.z) *
-                                    Eigen::Quaterniond(plane_pose.orientation.w,
-                                        plane_pose.orientation.x,
-                                        plane_pose.orientation.y,
-                                        plane_pose.orientation.z);
-        // tf::poseMsgToEigen(plane_pose, transform);
-        shape_poses.push_back(transform);
-    }
-
-    for (size_t i = 0; i < object.meshes.size(); ++i) {
-        auto& mesh = object.meshes[i];
-
-        assert(0); // TODO: implement
-
-        auto& mesh_pose = object.mesh_poses[i];
-        Eigen::Affine3d transform = Eigen::Translation3d(mesh_pose.position.x,
-                                        mesh_pose.position.y,
-                                        mesh_pose.position.z) *
-                                    Eigen::Quaterniond(mesh_pose.orientation.w,
-                                        mesh_pose.orientation.x,
-                                        mesh_pose.orientation.y,
-                                        mesh_pose.orientation.z);
-        // tf::poseMsgToEigen(mesh_pose, transform);
-        shape_poses.push_back(transform);
-    }
-
-    // create the collision object
-    auto co = make_unique<collision::CollisionObject>();
-    co->id = object.id + "_" + std::to_string(idx);
-    co->shapes = std::move(shapes);
-    co->shape_poses = std::move(shape_poses);
-
-    collisionChecker()->m_collision_objects.push_back(std::move(co));
-    return collisionChecker()->insertObject(collisionChecker()->m_collision_objects.back().get());
-}
-
-bool ManipLatticeCBS::removeMovableMsg(const int& mov_id, const int& idx)
-{
-    const auto& object = m_movables.at(m_movables_map[mov_id]);
-
-    // find the collision object with this name
-    std::string id = object.id + "_" + std::to_string(idx);
-    auto* _object = collisionChecker()->findCollisionObject(id);
-    if (!_object) {
-        return false;
-    }
-
-    // remove from collision space
-    if (!collisionChecker()->removeObject(_object)) {
-        return false;
-    }
-
-    // remove all collision shapes belonging to this object
-    auto belongs_to_object = [_object](const std::unique_ptr<collision::CollisionShape>& shape) {
-        auto is_shape = [&shape](const collision::CollisionShape* s) {
-            return s == shape.get();
-        };
-        auto it = std::find_if(
-                begin(_object->shapes), end(_object->shapes), is_shape);
-        return it != end(_object->shapes);
-    };
-
-    auto rit = std::remove_if(
-            begin(collisionChecker()->m_collision_shapes), end(collisionChecker()->m_collision_shapes),
-            belongs_to_object);
-    collisionChecker()->m_collision_shapes.erase(rit, end(collisionChecker()->m_collision_shapes));
-
-    // remove the object itself
-    auto is_object = [_object](const std::unique_ptr<collision::CollisionObject>& object) {
-        return object.get() == _object;
-    };
-    auto rrit = std::remove_if(
-            begin(collisionChecker()->m_collision_objects), end(collisionChecker()->m_collision_objects), is_object);
-    collisionChecker()->m_collision_objects.erase(rrit, end(collisionChecker()->m_collision_objects));
-
-    return true;
 }
 
 } // namespace smpl

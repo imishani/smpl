@@ -58,6 +58,7 @@
 #include <smpl/stl/memory.h>
 #include <smpl/time.h>
 #include <smpl/types.h>
+#include <smpl/robot_model.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
 // project includes
@@ -830,7 +831,7 @@ bool PlannerInterface::solve(
 bool PlannerInterface::solve_with_constraints(
     const moveit_msgs::MotionPlanRequest& req,
     moveit_msgs::MotionPlanResponse& res,
-    const std::vector<moveit_msgs::CollisionObject>& movables,
+    const std::vector<SMPLObject*>& movables,
     const std::vector<std::vector<double> >& cvecs)
 {
     if (!cvecs.empty()) {

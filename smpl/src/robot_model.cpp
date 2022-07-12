@@ -84,4 +84,8 @@ InverseKinematicsInterface::~InverseKinematicsInterface()
 {
 }
 
+SMPLObject::~SMPLObject()
+{
+}
+
 } // namespace smpl

@@ -53,6 +53,7 @@
 namespace smpl {
 
 class RobotHeuristic;
+class SMPLObject;
 
 class RobotPlanningSpace :
     public DiscreteSpaceInformation,
@@ -144,7 +145,7 @@ public:
         FILE* f = nullptr) override = 0;
     ///@}
 
-    virtual void InitMovableSet(const std::vector<moveit_msgs::CollisionObject>& movables) {
+    virtual void InitMovableSet(const std::vector<SMPLObject*>& movables) {
         SMPL_ERROR("Calling base class function");
     };
     virtual void SetConstraints(const std::vector<std::vector<double> >& constraints) {

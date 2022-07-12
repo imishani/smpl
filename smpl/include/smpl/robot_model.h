@@ -181,6 +181,15 @@ private:
     RobotModel* m_parent;
 };
 
+class SMPLObject
+{
+public:
+    virtual ~SMPLObject();
+
+    virtual int ID() = 0;
+    virtual void SetTransform(const Eigen::Affine3d& T) = 0;
+};
+
 } // namespace smpl
 
 #endif
