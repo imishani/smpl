@@ -35,6 +35,7 @@
 #include <leatherman/print.h>
 #include <smpl/geometry/triangle.h>
 #include <smpl/geometry/intersect.h>
+#include <smpl/robot_model.h>
 
 // project includes
 #include <sbpl_collision_checking/collision_operations.h>
@@ -1083,6 +1084,36 @@ bool SelfCollisionModel::checkSpheresStateCollision(
     return true;
 }
 
+template <typename MovableObjectType>
+bool SelfCollisionModel::checkRobotCollisionWithMovableObject(
+    const RobotCollisionState& state,
+    MovableObjectType* obj,
+    const int gidx,
+    double& dist)
+{
+    prepareState(gidx, state.getJointVarPositions());
+    const CollisionSpheresState& obj_ss = *(obj->SpheresState());
+    const int obj_ssi = obj_ss.spheres.root()->parent_state->index;
+
+    const auto& group_link_indices = m_rcm->groupLinkIndices(m_gidx);
+    for (int l1 = 0; l1 < group_link_indices.size(); ++l1) {
+        const int lidx = group_link_indices[l1];
+        if (!m_rcm->hasSpheresModel(lidx)) {
+            continue;
+        }
+
+        const int robot_ssi = m_rcs.linkSpheresStateIndex(lidx);
+        const CollisionSpheresState& robot_ss = m_rcs.spheresState(robot_ssi);
+        if (!checkSpheresStateCollision(
+                *obj, m_rcs, obj_ssi, robot_ssi, obj_ss, robot_ss, dist))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 bool SelfCollisionModel::checkSpheresStateCollision(
     RobotCollisionState& stateA,
     RobotCollisionState& stateB,
@@ -1777,6 +1808,13 @@ bool SelfCollisionModel::getRobotAttachedBodySpheresStateCollisionDetails(
 {
     return false;
 }
+
+template
+bool SelfCollisionModel::checkRobotCollisionWithMovableObject<SMPLObject>(
+    const RobotCollisionState& state,
+    SMPLObject* obj,
+    const int gidx,
+    double& dist);
 
 } // namespace collision
 } // namespace smpl

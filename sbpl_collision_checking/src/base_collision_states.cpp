@@ -121,6 +121,10 @@ CollisionSphereStateTree& CollisionSphereStateTree::operator=(
     return *this;
 }
 
+SMPLObject::~SMPLObject()
+{
+}
+
 std::ostream& operator<<(std::ostream& o, const CollisionSphereStateTree& tree)
 {
     o << tree.m_tree;

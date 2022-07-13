@@ -94,7 +94,7 @@ struct hash<smpl::ManipLatticeCBSState>
 
 namespace smpl {
 
-class SMPLObject;
+class ObjectModel;
 
 /// \class Discrete space constructed by expliciting discretizing each joint
 class ManipLatticeCBS :
@@ -180,7 +180,7 @@ public:
     void SetConstraints(const std::vector<std::vector<double> >& constraints) override {
         m_constraints = constraints;
     }
-    void InitMovableSet(const std::vector<SMPLObject*>& movables) override {
+    void InitMovableSet(const std::vector<ObjectModel*>& movables) override {
         m_movables.insert(m_movables.begin(), movables.begin(), movables.end());
         initMovablesMap();
     }
@@ -242,7 +242,7 @@ private:
 
     std::string m_viz_frame_id;
 
-    std::vector<SMPLObject*> m_movables;
+    std::vector<ObjectModel*> m_movables;
     std::unordered_map<int, size_t> m_movables_map;
     std::vector<std::vector<double> > m_constraints;
 

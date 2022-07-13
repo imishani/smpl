@@ -222,6 +222,12 @@ public:
 
     void UpdateGroup(const std::string& group_name);
 
+    auto selfCollisionModel() -> const SelfCollisionModelPtr&
+    { return m_scm; }
+
+    auto robotCollisionState() -> RobotCollisionState*
+    { return m_rcs.get(); }
+
 public:
 
     OccupancyGrid*                  m_grid;
@@ -255,7 +261,7 @@ public:
     double minLimit(int vidx) const;
     double maxLimit(int vidx) const;
 
-    void updateState(const std::vector<double>& vals);
+    void updateState(const std::vector<double>& vals) override;
     void updateState(const double* vals);
     void updateState(
         std::vector<double>& state,
@@ -264,6 +270,11 @@ public:
     void copyState();
 
     bool withinJointPositionLimits(const std::vector<double>& positions) const;
+
+    template <typename MovableObjectType>
+    bool checkRobotCollisionWithMovableObject(
+        MovableObjectType* obj,
+        double& dist);
 };
 
 typedef std::shared_ptr<CollisionSpace> CollisionSpacePtr;
@@ -322,6 +333,15 @@ double CollisionSpace::maxLimit(int vidx) const
 {
     const int jidx = m_planning_joint_to_collision_model_indices[vidx];
     return m_rcm->jointVarMaxPosition(jidx);
+}
+
+template <typename MovableObjectType>
+bool CollisionSpace::checkRobotCollisionWithMovableObject(
+    MovableObjectType* obj,
+    double& dist)
+{
+    return m_scm->checkRobotCollisionWithMovableObject(
+        m_rcs, obj, m_rcm->groupIndex(m_group_name), dist);
 }
 
 } // namespace collision

@@ -831,7 +831,7 @@ bool PlannerInterface::solve(
 bool PlannerInterface::solve_with_constraints(
     const moveit_msgs::MotionPlanRequest& req,
     moveit_msgs::MotionPlanResponse& res,
-    const std::vector<SMPLObject*>& movables,
+    const std::vector<ObjectModel*>& movables,
     const std::vector<std::vector<double> >& cvecs)
 {
     if (!cvecs.empty()) {

@@ -84,7 +84,7 @@ InverseKinematicsInterface::~InverseKinematicsInterface()
 {
 }
 
-SMPLObject::~SMPLObject()
+ObjectModel::~ObjectModel()
 {
 }
 

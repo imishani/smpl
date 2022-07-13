@@ -203,25 +203,24 @@ bool ManipLatticeCBS::checkRobotMovableObjectSpheresCollision(
     const RobotState& rstate,
     size_t c_id)
 {
-    return false;
-    // SMPL_ERROR("checkRobotMovableObjectSpheresCollision");
+    SMPL_ERROR("checkRobotMovableObjectSpheresCollision");
 
-    // int mov_id = (int)m_constraints[c_id].at(1);
-    // std::vector<double> mov_state(m_constraints[c_id].begin() + 2, m_constraints[c_id].end());
-    // Affine3 T = Eigen::Translation3d(m_constraints[c_id][2], m_constraints[c_id][3], m_constraints[c_id][4]) *
-    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ()) *
-    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitY()) *
-    //                     Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX());
+    int mov_id = (int)m_constraints[c_id].at(1);
+    std::vector<double> mov_state(m_constraints[c_id].begin() + 2, m_constraints[c_id].end());
+    Affine3 T = Eigen::Translation3d(m_constraints[c_id][2], m_constraints[c_id][3], m_constraints[c_id][4]) *
+                        Eigen::AngleAxisd(m_constraints[c_id][7], Eigen::Vector3d::UnitZ()) *
+                        Eigen::AngleAxisd(m_constraints[c_id][6], Eigen::Vector3d::UnitY()) *
+                        Eigen::AngleAxisd(m_constraints[c_id][5], Eigen::Vector3d::UnitX());
 
-    // auto movable_obj = m_movables.at(m_movables_map[mov_id]);
-    // movable_obj->SetTransform(T);
+    auto movable_obj = m_movables.at(m_movables_map[mov_id]);
+    movable_obj->SetTransform(T);
 
-    // // auto cc_cs = dynamic_cast<collision::CollisionSpace&>(collisionChecker());
-    // collisionChecker()->updateState(rstate);
-    // double dist;
-    // return collisionChecker()->checkRobotCollisionWithMovableObject(
-    //                     movable_obj,
-    //                     dist);
+    // auto cc_cs = dynamic_cast<collision::CollisionSpace&>(collisionChecker());
+    collisionChecker()->updateState(rstate);
+    double dist;
+    return collisionChecker()->checkRobotCollisionWithMovableObject(
+                        movable_obj,
+                        dist);
 }
 
 void ManipLatticeCBS::GetSuccs(

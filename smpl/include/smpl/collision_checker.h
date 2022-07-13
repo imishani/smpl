@@ -111,6 +111,18 @@ public:
     virtual bool removeObject(const smpl::collision::CollisionObject* object) {
         SMPL_ERROR("Calling base class function");
     };
+
+    virtual void updateState(const std::vector<double>& vals) {
+        SMPL_ERROR("Calling base class function");
+    };
+
+    template <typename MovableObjectType>
+    bool checkRobotCollisionWithMovableObject(
+        MovableObjectType* obj,
+        double& dist) {
+        SMPL_ERROR("Calling base class function");
+    };
+
     auto findCollisionObject(const std::string& id) const
     -> smpl::collision::CollisionObject*
     {

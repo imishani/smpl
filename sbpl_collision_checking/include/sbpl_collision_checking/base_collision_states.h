@@ -40,6 +40,7 @@
 #include <Eigen/Dense>
 
 // project includes
+#include <smpl/robot_model.h>
 #include <sbpl_collision_checking/base_collision_models.h>
 
 namespace smpl {
@@ -140,6 +141,15 @@ private:
     friend std::ostream& operator<<(std::ostream& o, const CollisionSphereStateTree& tree);
 
     container_type m_tree;
+};
+
+class SMPLObject : public ObjectModel
+{
+public:
+    virtual ~SMPLObject();
+
+    virtual CollisionSpheresState* SpheresState() = 0;
+    virtual void updateSphereState(const SphereIndex& sidx) = 0;
 };
 
 std::ostream& operator<<(std::ostream& o, const CollisionSphereStateTree& tree);

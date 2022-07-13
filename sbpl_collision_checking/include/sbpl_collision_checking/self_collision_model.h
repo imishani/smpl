@@ -135,6 +135,13 @@ public:
 
     void UpdateGroup(const std::string& group_name);
 
+    template <typename MovableObjectType>
+    bool checkRobotCollisionWithMovableObject(
+        const RobotCollisionState& state,
+        MovableObjectType* obj,
+        const int gidx,
+        double& dist);
+
 private:
 
     OccupancyGrid*                          m_grid;

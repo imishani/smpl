@@ -78,7 +78,7 @@ using PlannerFactory = std::function<
 
 using GoalConstraints = std::vector<moveit_msgs::Constraints>;
 
-class SMPLObject;
+class ObjectModel;
 
 class PlannerInterface
 {
@@ -105,7 +105,7 @@ public:
     bool solve_with_constraints(
         const moveit_msgs::MotionPlanRequest& req,
         moveit_msgs::MotionPlanResponse& res,
-        const std::vector<SMPLObject*>& movables,
+        const std::vector<ObjectModel*>& movables,
         const std::vector<std::vector<double> >& cvecs);
 
     static
