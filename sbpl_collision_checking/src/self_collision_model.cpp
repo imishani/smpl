@@ -1084,10 +1084,9 @@ bool SelfCollisionModel::checkSpheresStateCollision(
     return true;
 }
 
-template <typename MovableObjectType>
-bool SelfCollisionModel::checkRobotCollisionWithMovableObject(
+bool SelfCollisionModel::robotMovableObjectCollision(
     const RobotCollisionState& state,
-    MovableObjectType* obj,
+    SMPLObject* obj,
     const int gidx,
     double& dist)
 {
@@ -1809,12 +1808,12 @@ bool SelfCollisionModel::getRobotAttachedBodySpheresStateCollisionDetails(
     return false;
 }
 
-template
-bool SelfCollisionModel::checkRobotCollisionWithMovableObject<SMPLObject>(
-    const RobotCollisionState& state,
-    SMPLObject* obj,
-    const int gidx,
-    double& dist);
+// template
+// bool SelfCollisionModel::robotMovableObjectCollision<SMPLObject>(
+//     const RobotCollisionState& state,
+//     SMPLObject* obj,
+//     const int gidx,
+//     double& dist);
 
 } // namespace collision
 } // namespace smpl

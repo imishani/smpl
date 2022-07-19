@@ -135,10 +135,9 @@ public:
 
     void UpdateGroup(const std::string& group_name);
 
-    template <typename MovableObjectType>
-    bool checkRobotCollisionWithMovableObject(
+    bool robotMovableObjectCollision(
         const RobotCollisionState& state,
-        MovableObjectType* obj,
+        SMPLObject* obj,
         const int gidx,
         double& dist);
 

@@ -203,8 +203,6 @@ bool ManipLatticeCBS::checkRobotMovableObjectSpheresCollision(
     const RobotState& rstate,
     size_t c_id)
 {
-    SMPL_ERROR("checkRobotMovableObjectSpheresCollision");
-
     int mov_id = (int)m_constraints[c_id].at(1);
     std::vector<double> mov_state(m_constraints[c_id].begin() + 2, m_constraints[c_id].end());
     Affine3 T = Eigen::Translation3d(m_constraints[c_id][2], m_constraints[c_id][3], m_constraints[c_id][4]) *
@@ -285,7 +283,7 @@ void ManipLatticeCBS::GetSuccs(
             {
                 if ((int)m_constraints[i].at(0) == parent_entry->t+1)
                 {
-                    if (checkRobotMovableObjectSpheresCollision(action.back(), i))
+                    if (!checkRobotMovableObjectSpheresCollision(action.back(), i))
                     {
                         constrained = true;
                         break;

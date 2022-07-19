@@ -669,6 +669,14 @@ bool CollisionSpace::withinJointPositionLimits(
     return true;
 }
 
+bool CollisionSpace::checkRobotCollisionWithMovableObject(
+    ObjectModel* obj,
+    double& dist)
+{
+    return m_scm->robotMovableObjectCollision(
+        *(m_rcs.get()), static_cast<SMPLObject*>(obj), m_rcm->groupIndex(m_group_name), dist);
+}
+
 auto BuildCollisionSpace(
     OccupancyGrid* grid,
     const std::string& urdf_string,

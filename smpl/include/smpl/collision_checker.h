@@ -47,6 +47,8 @@
 
 namespace smpl {
 
+class ObjectModel;
+
 class CollisionChecker : public virtual Extension
 {
 public:
@@ -116,9 +118,8 @@ public:
         SMPL_ERROR("Calling base class function");
     };
 
-    template <typename MovableObjectType>
-    bool checkRobotCollisionWithMovableObject(
-        MovableObjectType* obj,
+    virtual bool checkRobotCollisionWithMovableObject(
+        ObjectModel* obj,
         double& dist) {
         SMPL_ERROR("Calling base class function");
     };

@@ -187,7 +187,7 @@ public:
     virtual ~ObjectModel();
 
     virtual int ID() = 0;
-    virtual void SetTransform(const Eigen::Affine3d& T) = 0;
+    virtual void SetTransform(const Eigen::Affine3d& T, bool vis=false) = 0;
 };
 
 } // namespace smpl

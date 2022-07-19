@@ -228,6 +228,9 @@ public:
     auto robotCollisionState() -> RobotCollisionState*
     { return m_rcs.get(); }
 
+    auto attachedBodiesCollisionState() -> AttachedBodiesCollisionState*
+    { return m_abcs.get(); }
+
 public:
 
     OccupancyGrid*                  m_grid;
@@ -271,10 +274,9 @@ public:
 
     bool withinJointPositionLimits(const std::vector<double>& positions) const;
 
-    template <typename MovableObjectType>
     bool checkRobotCollisionWithMovableObject(
-        MovableObjectType* obj,
-        double& dist);
+        ObjectModel* obj,
+        double& dist) override;
 };
 
 typedef std::shared_ptr<CollisionSpace> CollisionSpacePtr;
@@ -333,15 +335,6 @@ double CollisionSpace::maxLimit(int vidx) const
 {
     const int jidx = m_planning_joint_to_collision_model_indices[vidx];
     return m_rcm->jointVarMaxPosition(jidx);
-}
-
-template <typename MovableObjectType>
-bool CollisionSpace::checkRobotCollisionWithMovableObject(
-    MovableObjectType* obj,
-    double& dist)
-{
-    return m_scm->checkRobotCollisionWithMovableObject(
-        m_rcs, obj, m_rcm->groupIndex(m_group_name), dist);
 }
 
 } // namespace collision
