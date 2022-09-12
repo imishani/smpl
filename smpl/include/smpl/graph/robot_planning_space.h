@@ -89,7 +89,7 @@ public:
     const RobotModel* robot() const { return m_robot; }
 
     CollisionChecker* collisionChecker(bool movable=false) {
-        if (movable) {
+        if (movable && m_checker_m != nullptr) {
             return m_checker_m;
         }
         return m_checker;
